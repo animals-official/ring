@@ -176,6 +176,7 @@ async function chooseRing(button, image) {
   status.textContent = 'リングを読み込み中…';
   update();
   try {
+    image.loading = 'eager';
     await image.decode();
     if (version !== ringVersion) return;
     ring = image;
@@ -217,13 +218,14 @@ async function loadRings() {
       label.textContent = name;
       button.append(image, label);
       button.addEventListener('click', () => {
-        image.loading = 'eager';
+        if (!photo && !photoInput.disabled) photoInput.click();
         chooseRing(button, image);
       });
-      return button;
+      return { button, image };
     });
-    get('rings').replaceChildren(...buttons);
-    buttons[0].click();
+    get('rings').replaceChildren(...buttons.map(({ button }) => button));
+    const [first] = buttons;
+    await chooseRing(first.button, first.image);
   } catch {
     status.textContent = 'リング一覧を取得できませんでした。ページを再読み込みしてください。';
   }
@@ -252,7 +254,7 @@ share.addEventListener('click', async () => {
     await navigator.share({ files: [exportFile] });
   } catch (error) {
     if (error.name !== 'AbortError') {
-      get('export-status').textContent = '共有できませんでした。「PNGを保存」をお試しください。';
+      get('export-status').textContent = '共有できませんでした。「画像を保存する！」をお試しください。';
     }
   }
 });

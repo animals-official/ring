@@ -29,17 +29,17 @@ with tempfile.TemporaryDirectory() as root:
     copy2(ROOT / 'assets' / 'animals-logo.png', site / 'assets')
     (site / 'rings').mkdir()
     (site / 'scripts').mkdir()
-    copy2(ROOT / 'rings' / 'デモ レッド.png', site / 'rings')
     copy2(ROOT / 'scripts' / 'generate-rings.mjs', site / 'scripts')
 
     def manifest():
         subprocess.run(['node', str(site / 'scripts/generate-rings.mjs')], check=True)
         return json.loads((site / 'rings.json').read_text())
 
-    assert manifest() == [{'name': 'デモ レッド', 'file': 'デモ レッド.png'}]
-    with Image.open(site / 'rings' / 'デモ レッド.png') as demo:
-        assert demo.size == OUTPUT_DIMENSIONS and demo.mode == 'RGBA'
-        assert demo.getpixel((750, 750))[3] == demo.getpixel((0, 0))[3] == 0
+    demo_file = 'テスト レッド.png'
+    demo_ring = Image.new('RGBA', OUTPUT_DIMENSIONS)
+    ImageDraw.Draw(demo_ring).ellipse((1, 1, 1498, 1498), outline='#f32349', width=32)
+    demo_ring.save(site / 'rings' / demo_file)
+    assert manifest() == [{'name': 'テスト レッド', 'file': demo_file}]
 
     extra = site / 'rings' / '追加 リング.PNG'
     renamed = extra.with_name('変更 #リング.PNG')
@@ -48,7 +48,7 @@ with tempfile.TemporaryDirectory() as root:
     alternate.save(extra)
     assert len(manifest()) == 2
     extra.rename(renamed)
-    assert {entry['file'] for entry in manifest()} == {'デモ レッド.png', renamed.name}
+    assert {entry['file'] for entry in manifest()} == {demo_file, renamed.name}
     (site / 'rings' / 'ignored.jpg').touch()
 
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=root))
@@ -67,6 +67,12 @@ with tempfile.TemporaryDirectory() as root:
         errors = []
         page.on('request', lambda req: requests.append(req))
         page.on('pageerror', lambda error: errors.append(str(error)))
+        page.add_init_script('''
+            window.pickerClicks = 0;
+            document.addEventListener('click', event => {
+              if (event.target.id === 'photo') window.pickerClicks++;
+            });
+        ''')
         page.goto(url)
         logo = page.get_by_role('heading', name='ANIMALS', exact=True).get_by_role('img')
         expect(logo).to_be_visible()
@@ -75,13 +81,19 @@ with tempfile.TemporaryDirectory() as root:
         mobile_logo = logo.bounding_box()
         assert mobile_logo['width'] <= 390
         assert abs(mobile_logo['width'] / mobile_logo['height'] - logo_ratio) < .03
-        first = page.get_by_role('button', name='デモ レッド')
+        first = page.get_by_role('button', name='テスト レッド')
         second = page.get_by_role('button', name='変更 #リング')
         expect(first).to_have_attribute('aria-pressed', 'true')
         assert page.evaluate('document.documentElement.scrollWidth === innerWidth')
         expect(page.get_by_text('1500 × 1500 PX', exact=True)).to_be_visible()
         uploader = page.locator('#photo')
-        save = page.get_by_role('button', name='PNGを保存')
+        save = page.get_by_role('button', name='画像を保存する！')
+        expect(page.get_by_text('AWAKEN THE WILD WITHIN THE SOUND', exact=True)).to_be_visible()
+        assert page.evaluate('window.pickerClicks') == 0
+        with page.expect_file_chooser() as chooser:
+            first.tap()
+        chooser.value.set_files([])
+        assert page.evaluate('window.pickerClicks') == 1
         for format in ('JPEG', 'PNG', 'WEBP'):
             uploader.set_input_files(photo(format))
             expect(page.locator('#photo-status')).to_have_text('test.' + format.lower())
@@ -105,6 +117,7 @@ with tempfile.TemporaryDirectory() as root:
         expect(first).to_have_attribute('aria-pressed', 'false')
         expect(save).to_be_enabled()
         assert download().getpixel((750, 750)) == (0, 255, 0, 255)
+        assert page.evaluate('window.pickerClicks') == 1
 
         canvas = page.locator('canvas')
         canvas.scroll_into_view_if_needed()
@@ -175,7 +188,7 @@ with tempfile.TemporaryDirectory() as root:
         assert extra_count == 2
         renamed.unlink()
         assert len(manifest()) == 1
-        (site / 'rings' / 'デモ レッド.png').unlink()
+        (site / 'rings' / demo_file).unlink()
         assert manifest() == []
         page.reload()
         expect(page.locator('#ring-status')).to_contain_text('まだ登録されていません')

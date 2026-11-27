@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101012">
+  <meta name="theme-color" content="#0a080b">
   <meta name="description" content="お気に入りの写真にANIMALS公式リングを重ねて、オリジナルのアイコンを作ろう。">
   <title>ANIMALS OFFICIAL ICON RING MAKER</title>
   <link rel="stylesheet" href="./style.css">
@@ -11,14 +11,29 @@
 </head>
 <body>
   <header class="hero">
+    <div class="hero-art" aria-hidden="true"></div>
     <div class="hero-inner">
       <h1><img class="hero-logo" src="./assets/animals-logo.png" width="1101" height="108" alt="ANIMALS"></h1>
       <p>OFFICIAL ICON RING MAKER</p>
+      <p class="intro">お気に入りの写真にリングを重ねて、自分だけのアイコンを作ろう。</p>
     </div>
   </header>
   <main>
-    <p class="intro">お気に入りの写真にリングを重ねて、自分だけのアイコンを作ろう。</p>
     <div class="workspace">
+      <section class="panel ring-panel" aria-labelledby="rings-title">
+        <h2 id="rings-title">リングを選ぶ</h2>
+        <p id="ring-status" class="hint" role="status">リングを読み込み中…</p>
+        <div id="rings" class="rings" role="group" aria-labelledby="rings-title"></div>
+      </section>
+      <section class="panel photo-panel" aria-labelledby="photo-title">
+        <h2 id="photo-title">写真を選ぶ</h2>
+        <label class="upload">
+          <span aria-hidden="true">＋</span>
+          <span>画像をアップロード<small>JPEG / PNG / WebP</small></span>
+          <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp">
+        </label>
+        <p id="photo-status" class="hint" role="status">画像はこの端末のブラウザ内で処理されます。</p>
+      </section>
       <section class="preview panel" aria-labelledby="preview-title">
         <div class="section-heading">
           <h2 id="preview-title">プレビュー</h2>
@@ -30,45 +45,32 @@
         </div>
         <p class="hint">ドラッグで移動 · ピンチで拡大・縮小</p>
       </section>
-      <div class="controls">
-        <section class="panel" aria-labelledby="photo-title">
-          <h2 id="photo-title">写真を選ぶ</h2>
-          <label class="upload">
-            <span aria-hidden="true">＋</span>
-            <span>画像をアップロード<small>JPEG / PNG / WebP</small></span>
-            <input id="photo" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp">
-          </label>
-          <p id="photo-status" class="hint" role="status">画像はこの端末のブラウザ内で処理されます。</p>
-        </section>
-        <section class="panel" aria-labelledby="rings-title">
-          <h2 id="rings-title">リングを選ぶ</h2>
-          <p id="ring-status" class="hint" role="status">リングを読み込み中…</p>
-          <div id="rings" class="rings" role="group" aria-labelledby="rings-title"></div>
-        </section>
-        <section class="panel" aria-labelledby="adjust-title">
-          <div class="section-heading">
-            <h2 id="adjust-title">写真を調整</h2>
-            <button id="reset" class="text-button" type="button" disabled>リセット</button>
-          </div>
-          <label class="slider" for="zoom">拡大・縮小 <output id="zoom-value" for="zoom">100%</output></label>
-          <input id="zoom" type="range" min="50" max="400" value="100" disabled>
-          <label class="slider" for="rotation">回転 <output id="rotation-value" for="rotation">0°</output></label>
-          <input id="rotation" type="range" min="-180" max="180" value="0" disabled>
-          <div class="move" role="group" aria-label="写真の位置を調整">
-            <button type="button" data-x="-1" aria-label="左へ移動" disabled>←</button>
-            <button type="button" data-y="-1" aria-label="上へ移動" disabled>↑</button>
-            <button type="button" data-y="1" aria-label="下へ移動" disabled>↓</button>
-            <button type="button" data-x="1" aria-label="右へ移動" disabled>→</button>
-          </div>
-        </section>
-        <div class="actions">
-          <button id="save" class="primary" type="button" disabled>PNGを保存 <span aria-hidden="true">↓</span></button>
-          <button id="share" class="secondary" type="button" disabled hidden>共有・画像を保存</button>
-          <p id="export-status" class="hint" role="status"></p>
+      <section class="panel adjust-panel" aria-labelledby="adjust-title">
+        <div class="section-heading">
+          <h2 id="adjust-title">写真を調整</h2>
+          <button id="reset" class="text-button" type="button" disabled>リセット</button>
         </div>
+        <label class="slider" for="zoom">拡大・縮小 <output id="zoom-value" for="zoom">100%</output></label>
+        <input id="zoom" type="range" min="50" max="400" value="100" disabled>
+        <label class="slider" for="rotation">回転 <output id="rotation-value" for="rotation">0°</output></label>
+        <input id="rotation" type="range" min="-180" max="180" value="0" disabled>
+        <div class="move" role="group" aria-label="写真の位置を調整">
+          <button type="button" data-x="-1" aria-label="左へ移動" disabled>←</button>
+          <button type="button" data-y="-1" aria-label="上へ移動" disabled>↑</button>
+          <button type="button" data-y="1" aria-label="下へ移動" disabled>↓</button>
+          <button type="button" data-x="1" aria-label="右へ移動" disabled>→</button>
+        </div>
+      </section>
+      <div class="actions">
+        <button id="save" class="primary" type="button" disabled>画像を保存する！ <span aria-hidden="true">↓</span></button>
+        <button id="share" class="secondary" type="button" disabled hidden>共有・画像を保存</button>
+        <p id="export-status" class="hint" role="status"></p>
       </div>
     </div>
   </main>
-  <footer>ANIMALS OFFICIAL</footer>
+  <footer>
+    <p>AWAKEN THE WILD WITHIN THE SOUND</p>
+    <small>ANIMALS OFFICIAL</small>
+  </footer>
 </body>
 </html>
