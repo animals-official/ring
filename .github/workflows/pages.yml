@@ -27,10 +27,10 @@ jobs:
       - name: Stage the static site
         run: |
           mkdir _site
-          cp index.html style.css app.js image.js rings.json _site/
+          cp index.html style.css app.js image.js ring.js rings.json _site/
           cp -R assets rings _site/
           sed -i "s|\./style\.css|./style.css?v=${GITHUB_SHA}|; s|\./app\.js|./app.js?v=${GITHUB_SHA}|" _site/index.html
-          sed -i "s|\./image\.js|./image.js?v=${GITHUB_SHA}|" _site/app.js
+          sed -i "s|\./image\.js|./image.js?v=${GITHUB_SHA}|; s|\./ring\.js|./ring.js?v=${GITHUB_SHA}|" _site/app.js
       - uses: actions/upload-pages-artifact@v3
 
   deploy:
