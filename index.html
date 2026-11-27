@@ -41,7 +41,7 @@
         </div>
         <div class="stage">
           <canvas id="preview" width="540" height="540" role="img" aria-label="アイコンの合成プレビュー"></canvas>
-          <p id="placeholder" aria-hidden="true">写真を選ぶと<br>ここに表示されます</p>
+          <button id="placeholder" type="button" aria-label="プレビューから写真を選ぶ">写真を選ぶと<br>ここに表示されます</button>
         </div>
         <p class="hint">ドラッグで移動 · ピンチで拡大・縮小</p>
       </section>
@@ -64,6 +64,7 @@
       <div class="actions">
         <button id="save" class="primary" type="button" disabled>画像を保存する！ <span aria-hidden="true">↓</span></button>
         <button id="share" class="secondary" type="button" disabled hidden>共有・画像を保存</button>
+        <button id="open-image" class="secondary" type="button" hidden>画像を開いて保存</button>
         <p id="export-status" class="hint" role="status"></p>
       </div>
     </div>
