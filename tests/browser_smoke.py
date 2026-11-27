@@ -25,6 +25,8 @@ with tempfile.TemporaryDirectory() as root:
     site.mkdir()
     for file in ['index.html', 'style.css', 'app.js', 'image.js']:
         copy2(ROOT / file, site)
+    (site / 'assets').mkdir()
+    copy2(ROOT / 'assets' / 'animals-logo.png', site / 'assets')
     (site / 'rings').mkdir()
     (site / 'scripts').mkdir()
     copy2(ROOT / 'rings' / 'デモ レッド.png', site / 'rings')
@@ -66,6 +68,13 @@ with tempfile.TemporaryDirectory() as root:
         page.on('request', lambda req: requests.append(req))
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.goto(url)
+        logo = page.get_by_role('heading', name='ANIMALS', exact=True).get_by_role('img')
+        expect(logo).to_be_visible()
+        assert logo.evaluate('image => image.decode().then(() => image.naturalWidth)') > 0
+        logo_ratio = logo.evaluate('image => image.naturalWidth / image.naturalHeight')
+        mobile_logo = logo.bounding_box()
+        assert mobile_logo['width'] <= 390
+        assert abs(mobile_logo['width'] / mobile_logo['height'] - logo_ratio) < .03
         first = page.get_by_role('button', name='デモ レッド')
         second = page.get_by_role('button', name='変更 #リング')
         expect(first).to_have_attribute('aria-pressed', 'true')
@@ -141,6 +150,9 @@ with tempfile.TemporaryDirectory() as root:
         mobile_width = canvas.bounding_box()['width']
         page.set_viewport_size({'width': 1280, 'height': 900})
         assert canvas.bounding_box()['width'] > mobile_width
+        desktop_logo = logo.bounding_box()
+        assert desktop_logo['width'] > mobile_logo['width']
+        assert abs(desktop_logo['width'] / desktop_logo['height'] - logo_ratio) < .03
         download()
 
         invalid = photo('PNG')
