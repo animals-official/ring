@@ -19,13 +19,14 @@
   </header>
   <main>
     <div class="workspace">
+      <div class="deck-brand" aria-hidden="true"><span>ANIMALS <b> / </b> ICON DECK</span><span><i></i> DIGITAL WORKSTATION</span></div>
       <section class="panel ring-panel" aria-labelledby="rings-title">
-        <h2 id="rings-title">リングを選ぶ</h2>
+        <div class="section-heading"><h2 id="rings-title">リングを選ぶ</h2><span class="deck-label">PERFORMANCE PADS</span></div>
         <p id="ring-status" class="hint" role="status">リングを読み込み中…</p>
         <div id="rings" class="rings" role="group" aria-labelledby="rings-title"></div>
       </section>
       <section class="panel photo-panel" aria-labelledby="photo-title">
-        <h2 id="photo-title">写真を選ぶ</h2>
+        <div class="section-heading"><h2 id="photo-title">写真を選ぶ</h2><span class="deck-label">SOURCE</span></div>
         <label class="upload">
           <span aria-hidden="true">＋</span>
           <span>画像をアップロード<small>JPEG / PNG / WebP</small></span>
@@ -38,9 +39,11 @@
           <h2 id="preview-title">プレビュー</h2>
           <span class="waveform" aria-hidden="true"></span>
         </div>
-        <div class="stage">
+        <div class="jog-wheel">
+          <div class="stage">
           <canvas id="preview" width="540" height="540" role="img" aria-label="アイコンの合成プレビュー"></canvas>
           <button id="placeholder" type="button" aria-label="プレビューから写真を選ぶ">写真を選ぶと<br>ここに表示されます</button>
+        </div>
         </div>
         <p class="hint">ドラッグで移動 · ピンチで拡大・縮小</p>
       </section>
