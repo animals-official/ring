@@ -13,6 +13,7 @@ const share = get('share');
 const openImage = get('open-image');
 const previewPicker = get('placeholder');
 const photoInput = get('photo');
+const removePhoto = get('remove-photo');
 const moveButtons = [...document.querySelectorAll('.move button')];
 const defaults = { x: 0, y: 0, zoom: 1, angle: 0 };
 const position = { ...defaults };
@@ -63,6 +64,7 @@ function composite(target) {
 function update() {
   composite(canvas);
   previewPicker.hidden = Boolean(photo);
+  removePhoto.disabled = !photo || photoInput.disabled;
   canvas.classList.toggle('editable', Boolean(photo));
   for (const control of [zoom, rotation, get('reset'), ...moveButtons]) control.disabled = !photo;
   zoom.value = Math.round(position.zoom * 100);
@@ -111,12 +113,26 @@ function openPhotoPicker() {
   photoInput.click();
 }
 
+removePhoto.addEventListener('click', () => {
+  if (!photo || photoInput.disabled) return;
+  photo.width = photo.height = 1;
+  photo = undefined;
+  photoInput.value = '';
+  for (const id of pointers.keys()) {
+    if (canvas.hasPointerCapture(id)) canvas.releasePointerCapture(id);
+  }
+  pointers.clear();
+  Object.assign(position, defaults);
+  get('photo-status').textContent = '画像はこの端末のブラウザ内で処理されます。';
+  share.hidden = true;
+  update();
+});
 previewPicker.addEventListener('click', openPhotoPicker);
 photoInput.addEventListener('change', async () => {
   const file = photoInput.files[0];
   photoInput.value = '';
   if (!file) return;
-  photoInput.disabled = previewPicker.disabled = true;
+  photoInput.disabled = previewPicker.disabled = removePhoto.disabled = true;
   const status = get('photo-status');
   status.textContent = '画像を読み込み中…';
   try {
@@ -131,6 +147,7 @@ photoInput.addEventListener('change', async () => {
     status.textContent = error.message;
   } finally {
     photoInput.disabled = previewPicker.disabled = false;
+    removePhoto.disabled = !photo;
   }
 });
 
