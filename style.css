@@ -367,3 +367,9 @@ body::after { right:0; transform:scaleX(-1); }
   }
   body::after { background:linear-gradient(90deg,#08090c 0 2px,transparent 2px 4px,#b7a3ec 4px 5px,transparent 5px 8px,#08090c 8px),linear-gradient(180deg,#3e304e,#273e4b 48%,#665238 85%,#111318); }
 }
+
+/* Remove only the uploaded photo, preserving the selected ring. */
+#remove-photo { display:inline-flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:8px; border:1px solid #754444; border-radius:6px; color:#ff7777; background:#21171b; cursor:pointer; }
+#remove-photo:disabled { opacity:.35; cursor:default; }
+#remove-photo:not(:disabled):hover { background:#382026; }
+#remove-photo:focus-visible { outline:2px solid #ff7777; outline-offset:2px; }
