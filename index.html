@@ -7,6 +7,18 @@
   <meta name="description" content="お気に入りの写真にANIMALS公式リングを重ねて、オリジナルのアイコンを作ろう。">
   <title>ANIMALS OFFICIAL ICON RING MAKER</title>
   <link rel="stylesheet" href="./style.css">
+  <script>
+    (() => {
+      try {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has('utm_source')) return;
+        url.searchParams.delete('utm_source');
+        window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+      } catch (_) {
+        // URL cleanup must never interrupt the icon maker.
+      }
+    })();
+  </script>
   <script type="module" src="./app.js"></script>
 </head>
 <body>
