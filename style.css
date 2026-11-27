@@ -134,16 +134,16 @@ canvas.editable { cursor: grab; touch-action: none; }
 canvas.editable:active { cursor: grabbing; }
 #placeholder {
   position: absolute;
-  inset: 20%;
-  margin: 0;
-  display: grid;
-  place-content: center;
-  pointer-events: none;
+  inset: 0;
+  padding: 20%;
+  border: 0;
+  background: transparent;
   color: #f3e7ec;
   text-align: center;
   font-size: .88rem;
   line-height: 1.65;
 }
+#placeholder:focus-visible { outline-offset: -3px; }
 .hint { margin: 9px 0 0; font-size: .75rem; color: var(--muted); line-height: 1.5; overflow-wrap: anywhere; }
 .hint:empty { display: none; }
 .upload {

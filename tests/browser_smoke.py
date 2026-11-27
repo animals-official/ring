@@ -69,6 +69,11 @@ with tempfile.TemporaryDirectory() as root:
         page.on('pageerror', lambda error: errors.append(str(error)))
         page.add_init_script('''
             window.pickerClicks = 0;
+            const showPicker = HTMLInputElement.prototype.showPicker;
+            HTMLInputElement.prototype.showPicker = function () {
+              if (this.id === 'photo') window.pickerClicks++;
+              return showPicker.call(this);
+            };
             document.addEventListener('click', event => {
               if (event.target.id === 'photo') window.pickerClicks++;
             });
@@ -94,10 +99,16 @@ with tempfile.TemporaryDirectory() as root:
             first.tap()
         chooser.value.set_files([])
         assert page.evaluate('window.pickerClicks') == 1
+        preview_picker = page.get_by_role('button', name='プレビューから写真を選ぶ')
+        with page.expect_file_chooser() as chooser:
+            preview_picker.tap()
+        chooser.value.set_files([])
+        assert page.evaluate('window.pickerClicks') == 2
         for format in ('JPEG', 'PNG', 'WEBP'):
             uploader.set_input_files(photo(format))
             expect(page.locator('#photo-status')).to_have_text('test.' + format.lower())
             expect(save).to_be_enabled()
+            expect(preview_picker).to_be_hidden()
 
         def download():
             with page.expect_download() as result:
@@ -117,7 +128,7 @@ with tempfile.TemporaryDirectory() as root:
         expect(first).to_have_attribute('aria-pressed', 'false')
         expect(save).to_be_enabled()
         assert download().getpixel((750, 750)) == (0, 255, 0, 255)
-        assert page.evaluate('window.pickerClicks') == 1
+        assert page.evaluate('window.pickerClicks') == 2
 
         canvas = page.locator('canvas')
         canvas.scroll_into_view_if_needed()
@@ -184,6 +195,52 @@ with tempfile.TemporaryDirectory() as root:
         assert all(request.method == 'GET' and request.url.startswith(url) for request in network_requests)
         assert not errors, errors
 
+        iphone = browser.new_page(
+            viewport={'width': 390, 'height': 844}, is_mobile=True, has_touch=True,
+            user_agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Safari/605.1.15',
+        )
+        iphone.add_init_script('''
+            HTMLInputElement.prototype.showPicker = undefined;
+            navigator.canShare = ({ files }) => !window.shareUnsupported && files.length === 1;
+            navigator.share = async ({ files }) => {
+              window.shareHadActivation = navigator.userActivation.isActive;
+              if (window.rejectShare) throw new DOMException('Blocked', 'NotAllowedError');
+              const [file] = files;
+              const bitmap = await createImageBitmap(file);
+              window.sharedImage = [file.name, file.type, bitmap.width, bitmap.height];
+              bitmap.close();
+            };
+        ''')
+        iphone.goto(url)
+        with iphone.expect_file_chooser() as chooser:
+            iphone.get_by_role('button', name='テスト レッド').tap()
+        chooser.value.set_files([])
+        with iphone.expect_file_chooser() as chooser:
+            iphone.get_by_role('button', name='プレビューから写真を選ぶ').tap()
+        chooser.value.set_files(photo('PNG'))
+        iphone_save = iphone.get_by_role('button', name='画像を保存する！')
+        expect(iphone_save).to_be_enabled()
+        iphone_save.tap()
+        iphone.wait_for_function('Array.isArray(window.sharedImage)')
+        assert iphone.evaluate('window.sharedImage') == ['animals-icon.png', 'image/png', 1500, 1500]
+        assert iphone.evaluate('window.shareHadActivation')
+        iphone.evaluate('window.rejectShare = true')
+        iphone_save.tap()
+        fallback = iphone.get_by_role('button', name='画像を開いて保存')
+        expect(fallback).to_be_visible()
+        with iphone.expect_popup() as popup:
+            fallback.tap()
+        assert popup.value.url.startswith('blob:')
+        popup.value.close()
+        iphone.evaluate('window.shareUnsupported = true')
+        iphone.get_by_role('button', name='リセット').tap()
+        expect(iphone_save).to_be_enabled()
+        with iphone.expect_popup() as popup:
+            iphone_save.tap()
+        assert popup.value.url.startswith('blob:')
+        popup.value.close()
+        iphone.close()
+
         extra_count = len(manifest())
         assert extra_count == 2
         renamed.unlink()
@@ -196,4 +253,4 @@ with tempfile.TemporaryDirectory() as root:
         browser.close()
     server.shutdown()
     server.server_close()
-print('PASS: manifest additions/renames/deletions, mobile UI, JPEG/PNG/WebP, composites, 1500px RGBA downloads at two viewport widths, drag, pinch, reset, invalid images, same-origin requests, empty state')
+print('PASS: manifest additions/renames/deletions, mobile UI, JPEG/PNG/WebP, composites, 1500px RGBA downloads at two viewport widths, drag, pinch, reset, invalid images, same-origin requests, empty state, native picker, simulated iPhone share and fallback')

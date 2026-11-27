@@ -9,6 +9,8 @@ const zoom = get('zoom');
 const rotation = get('rotation');
 const save = get('save');
 const share = get('share');
+const openImage = get('open-image');
+const previewPicker = get('placeholder');
 const photoInput = get('photo');
 const moveButtons = [...document.querySelectorAll('.move button')];
 const defaults = { x: 0, y: 0, zoom: 1, angle: 0 };
@@ -28,7 +30,7 @@ let exportTimer;
 let exportFile;
 const appleTouch = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-share.hidden = typeof navigator.share !== 'function';
+let canShareFile = false;
 
 function composite(target) {
   const ctx = target.getContext('2d');
@@ -54,7 +56,7 @@ function composite(target) {
 
 function update() {
   composite(canvas);
-  get('placeholder').hidden = Boolean(photo);
+  previewPicker.hidden = Boolean(photo);
   canvas.classList.toggle('editable', Boolean(photo));
   for (const control of [zoom, rotation, get('reset'), ...moveButtons]) control.disabled = !photo;
   zoom.value = Math.round(position.zoom * 100);
@@ -65,6 +67,8 @@ function update() {
   clearTimeout(exportTimer);
   const version = ++exportVersion;
   exportFile = undefined;
+  canShareFile = false;
+  openImage.hidden = true;
   save.disabled = share.disabled = true;
   get('export-status').textContent = '';
   if (!photo || !ring || ringPending) return;
@@ -79,18 +83,34 @@ function update() {
       }
       exportFile = new File([blob], FILE_NAME, { type: 'image/png' });
       save.disabled = false;
-      const canShare = navigator.canShare?.({ files: [exportFile] }) === true;
-      share.hidden = !canShare;
-      share.disabled = !canShare;
+      canShareFile = typeof navigator.share === 'function' &&
+        navigator.canShare?.({ files: [exportFile] }) === true;
+      share.hidden = appleTouch || !canShareFile;
+      share.disabled = share.hidden;
     }, 'image/png');
   }, 100);
 }
 
+function openPhotoPicker() {
+  if (photo || photoInput.disabled) return;
+  // Keep both native calls in the original click handler for Safari's user activation.
+  if (typeof photoInput.showPicker === 'function') {
+    try {
+      photoInput.showPicker();
+      return;
+    } catch {
+      // Older or embedded browsers can still handle the native input click.
+    }
+  }
+  photoInput.click();
+}
+
+previewPicker.addEventListener('click', openPhotoPicker);
 photoInput.addEventListener('change', async () => {
   const file = photoInput.files[0];
   photoInput.value = '';
   if (!file) return;
-  photoInput.disabled = true;
+  photoInput.disabled = previewPicker.disabled = true;
   const status = get('photo-status');
   status.textContent = '画像を読み込み中…';
   try {
@@ -104,7 +124,7 @@ photoInput.addEventListener('change', async () => {
   } catch (error) {
     status.textContent = error.message;
   } finally {
-    photoInput.disabled = false;
+    photoInput.disabled = previewPicker.disabled = false;
   }
 });
 
@@ -197,7 +217,7 @@ async function chooseRing(button, image) {
 async function loadRings() {
   const status = get('ring-status');
   try {
-    const response = await fetch('./rings.json');
+    const response = await fetch('./rings.json', { cache: 'no-cache' });
     if (!response.ok) throw new Error('Manifest unavailable');
     const entries = await response.json();
     if (!Array.isArray(entries)) throw new Error('Invalid manifest');
@@ -218,7 +238,7 @@ async function loadRings() {
       label.textContent = name;
       button.append(image, label);
       button.addEventListener('click', () => {
-        if (!photo && !photoInput.disabled) photoInput.click();
+        openPhotoPicker();
         chooseRing(button, image);
       });
       return { button, image };
@@ -231,15 +251,15 @@ async function loadRings() {
   }
 }
 
-save.addEventListener('click', () => {
+function openPng(inNewTab) {
   if (!exportFile) return;
   const link = document.createElement('a');
   const url = URL.createObjectURL(exportFile);
   link.href = url;
-  if (appleTouch && share.hidden) {
+  if (inNewTab) {
     link.target = '_blank';
     link.rel = 'noopener';
-    get('export-status').textContent = '開いた画像を長押しして保存できます。';
+    get('export-status').textContent = '開いた画像を長押しして「写真に保存」を選んでください。';
   } else {
     link.download = FILE_NAME;
   }
@@ -247,17 +267,34 @@ save.addEventListener('click', () => {
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
-});
-share.addEventListener('click', async () => {
+}
+
+async function sharePng() {
   if (!exportFile) return;
+  const file = exportFile;
   try {
-    await navigator.share({ files: [exportFile] });
+    // The PNG is prepared when editing stops so the share sheet opens on this tap.
+    await navigator.share({ files: [file] });
   } catch (error) {
-    if (error.name !== 'AbortError') {
+    if (error.name === 'AbortError' || file !== exportFile) return;
+    if (appleTouch) {
+      openImage.hidden = false;
+      get('export-status').textContent = '共有を開けませんでした。「画像を開いて保存」をお試しください。';
+    } else {
       get('export-status').textContent = '共有できませんでした。「画像を保存する！」をお試しください。';
     }
   }
+}
+
+save.addEventListener('click', () => {
+  if (appleTouch && canShareFile) {
+    sharePng();
+  } else {
+    openPng(appleTouch);
+  }
 });
+share.addEventListener('click', sharePng);
+openImage.addEventListener('click', () => openPng(true));
 
 update();
 loadRings();
