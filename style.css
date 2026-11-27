@@ -331,3 +331,39 @@ footer small { color: var(--muted); font-size: .63rem; letter-spacing: .2em; }
 .jog-wheel::before, .jog-wheel::after { z-index:0; }
 .jog-wheel { width:min(100%, 600px); }
 @media (max-width:720px) { .jog-wheel { max-width:430px; } }
+
+/* Full-page side lighting, independent of the editor controls. */
+body { position:relative; isolation:isolate; }
+body::before, body::after {
+  content:""; position:fixed; top:0; bottom:0; width:max(0px,calc((100vw - 1200px)/2 + 24px));
+  pointer-events:none; z-index:-1;
+  background:
+    linear-gradient(90deg,#08090c,transparent 22%,#0b0d12 85%,#08090c),
+    repeating-linear-gradient(135deg,#ffffff09 0 1px,transparent 1px 5px);
+}
+body::before { left:0; }
+body::after { right:0; transform:scaleX(-1); }
+@media (min-width:1250px) {
+  body::before,body::after {
+    background:
+      linear-gradient(90deg,transparent 8%,#8edff080 8.4%,#8edff012 9%,transparent 14%,transparent 25%,#a79be870 25.5%,transparent 27%,transparent 73%,#d6b98c65 73.5%,transparent 75%),
+      repeating-linear-gradient(0deg,transparent 0 36px,#ffffff09 37px 38px,transparent 39px 52px),
+      linear-gradient(110deg,#090a0e,#252932 45%,#111318 46%,#191c23 70%,#090a0e);
+    box-shadow:inset 0 0 35px #000a;
+  }
+}
+.workspace .jog-wheel { display:block; width:100%; max-width:none; aspect-ratio:auto; margin:14px auto 0; border:0; border-radius:0; background:none; box-shadow:none; }
+.workspace .jog-wheel::before,.workspace .jog-wheel::after { display:none; }
+.workspace .jog-wheel .stage { width:100%; max-width:570px; margin:0 auto; border-radius:3px; box-shadow:none; }
+@media (max-width:720px) { body::before,body::after { display:none; } .workspace .jog-wheel .stage { max-width:430px; } }
+
+/* Mobile side rails: keep the editor width unchanged. */
+@media (max-width:720px) {
+  body { background:radial-gradient(ellipse at 0% 45%,#263044 0,transparent 38%),radial-gradient(ellipse at 100% 65%,#30223e 0,transparent 38%),#0a080b; }
+  body::before,body::after {
+    display:block; width:12px; top:0; bottom:0;
+    background:linear-gradient(90deg,#08090c 0 2px,transparent 2px 4px,#a5e5f1 4px 5px,transparent 5px 8px,#08090c 8px),linear-gradient(180deg,#263c4b,#51416a 48%,#665238 85%,#111318);
+    box-shadow:inset 0 0 4px #0008,0 0 9px #8edff033;
+  }
+  body::after { background:linear-gradient(90deg,#08090c 0 2px,transparent 2px 4px,#b7a3ec 4px 5px,transparent 5px 8px,#08090c 8px),linear-gradient(180deg,#3e304e,#273e4b 48%,#665238 85%,#111318); }
+}
