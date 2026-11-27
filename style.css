@@ -373,3 +373,9 @@ body::after { right:0; transform:scaleX(-1); }
 #remove-photo:disabled { opacity:.35; cursor:default; }
 #remove-photo:not(:disabled):hover { background:#382026; }
 #remove-photo:focus-visible { outline:2px solid #ff7777; outline-offset:2px; }
+
+/* Give the square preview more room without changing export dimensions. */
+.workspace .jog-wheel .stage { max-width:none; }
+.workspace .preview { padding:clamp(8px,1vw,12px); }
+@media (min-width:721px) { .workspace { grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); } }
+@media (max-width:720px) { main { padding-inline:14px; } .workspace { padding-inline:6px; } .workspace .preview { padding-inline:6px; } }
