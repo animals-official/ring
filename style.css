@@ -20,11 +20,12 @@ button:disabled { cursor: default; opacity: .46; }
 }
 .hero-inner { max-width: 1136px; margin: auto; padding: 43px 24px 36px; }
 h1 {
-  font: italic 950 clamp(3.15rem, 12vw, 7.25rem)/.85 system-ui, sans-serif;
-  letter-spacing: -.09em;
+  display: flex;
+  align-items: center;
+  min-height: clamp(2.6775rem, 10.2vw, 6.1625rem);
   margin: 0 0 14px;
 }
-h1 span { color: var(--accent); }
+.hero-logo { display: block; width: min(100%, clamp(16rem, 52vw, 34rem)); height: auto; }
 .hero p { margin: 0; font-size: clamp(.65rem, 2.6vw, .85rem); font-weight: 800; letter-spacing: .24em; }
 main { max-width: 1136px; margin: auto; padding: 20px 24px 48px; }
 .intro { color: #d9d1d5; font-size: .9rem; line-height: 1.7; margin: 0 0 18px; }

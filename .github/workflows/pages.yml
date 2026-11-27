@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir _site
           cp index.html style.css app.js image.js rings.json _site/
-          cp -R rings _site/
+          cp -R assets rings _site/
       - uses: actions/upload-pages-artifact@v3
 
   deploy:
