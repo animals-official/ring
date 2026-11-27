@@ -23,72 +23,32 @@ button:disabled { cursor: default; }
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border-bottom: 1px solid #7d2236;
-  background: linear-gradient(105deg, #0c090d 18%, #1c0a10 52%, #3b0d1b);
+  background: #0a080b;
 }
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: repeating-linear-gradient(164deg, #ffffff07 0 1px, transparent 1px 5px);
-  mask-image: linear-gradient(90deg, transparent 12%, #000);
-}
-.hero-art {
-  position: absolute;
-  z-index: -1;
-  inset: 0 0 0 34%;
-  overflow: hidden;
-  background:
-    repeating-radial-gradient(ellipse at 82% 54%, transparent 0 20px, #ff3b511e 21px 22px, transparent 23px 32px),
-    radial-gradient(ellipse at 85% 55%, #9a1833 0%, #571223 34%, transparent 72%);
-  mask-image: linear-gradient(90deg, transparent, #000 55%);
-}
-.hero-art::before, .hero-art::after {
-  content: "";
-  position: absolute;
-  inset: -46% -6% -20% 24%;
-  background: linear-gradient(166deg, #ff7c87 5%, #a51232 67%, #210911);
-  clip-path: polygon(57% 0, 43% 35%, 17% 72%, 8% 99%, 26% 76%, 52% 46%, 63% 19%, 66% 0,
-    72% 0, 62% 48%, 41% 84%, 36% 97%, 55% 77%, 73% 37%, 80% 0,
-    85% 0, 81% 43%, 70% 80%, 68% 96%, 85% 65%, 91% 24%, 92% 0);
-  opacity: .47;
-}
-.hero-art::after {
-  inset: -15% 0 -9% 39%;
-  opacity: .18;
-  transform: translateX(30px);
+.hero-artwork {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent 100%);
 }
 .hero-inner, main { width: min(100%, 1200px); margin-inline: auto; padding-inline: clamp(16px, 4vw, 42px); }
-.hero-wolf {
-  position: absolute;
-  z-index: -1;
-  right: 5%;
-  bottom: -16%;
-  width: min(50vw, 530px);
-  height: 125%;
-  background: linear-gradient(116deg, #0b080c 40%, #180911 85%);
-  opacity: .5;
-  clip-path: polygon(12% 100%, 25% 71%, 18% 78%, 30% 55%, 30% 34%, 35% 8%, 48% 35%,
-    56% 34%, 66% 16%, 70% 44%, 78% 53%, 97% 66%, 94% 73%, 84% 77%, 72% 76%, 78% 82%,
-    64% 84%, 56% 94%, 60% 100%);
-}
-.hero-inner { padding-block: clamp(33px, 7vw, 82px) clamp(28px, 5vw, 58px); }
+.hero-inner { position: relative; text-align: center; margin-top: clamp(-36px, -2vw, -8px); padding-bottom: clamp(16px, 2vw, 28px); }
 h1 { margin: 0; }
 .hero-logo {
   display: block;
   width: min(100%, clamp(16rem, 49vw, 34rem));
   height: auto;
+  margin-inline: auto;
   filter: drop-shadow(0 4px 22px #ff2d4740);
 }
-.hero p { margin: 14px 0 0; }
-.hero p:not(.intro) {
+.hero p {
+  margin: 14px 0 0;
   color: #fff0f2;
   font-size: clamp(.68rem, 2.7vw, .95rem);
   font-weight: 850;
   letter-spacing: .22em;
 }
-.hero .intro { color: #eadce1; font-size: .86rem; line-height: 1.65; }
 main { padding-block: clamp(16px, 3vw, 32px) 52px; }
 .workspace {
   display: grid;
@@ -309,8 +269,6 @@ footer small { color: var(--muted); font-size: .63rem; letter-spacing: .2em; }
     grid-template-rows: auto;
     gap: 10px;
   }
-  .hero-art { left: 25%; opacity: .68; }
-  .hero-wolf { width: 63vw; opacity: .32; right: 0; }
   .stage { max-width: 430px; }
 }
 @media (prefers-reduced-motion: reduce) {
