@@ -1,4 +1,5 @@
 import { loadPhoto } from './image.js';
+import { drawGifThumbnail, prepareRing } from './ring.js';
 
 const SIZE = 1500;
 const MOVE_STEP = SIZE / 45;
@@ -51,7 +52,12 @@ function composite(target) {
     ctx.drawImage(photo, -width / 2, -height / 2, width, height);
     ctx.restore();
   }
-  if (ring) ctx.drawImage(ring, 0, 0, SIZE, SIZE);
+  if (ring) {
+    const width = ring.naturalWidth || ring.width;
+    const height = ring.naturalHeight || ring.height;
+    const scale = SIZE / Math.max(width, height);
+    ctx.drawImage(ring, (SIZE - width * scale) / 2, (SIZE - height * scale) / 2, width * scale, height * scale);
+  }
 }
 
 function update() {
@@ -189,17 +195,16 @@ for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) {
   canvas.addEventListener(type, (event) => pointers.delete(event.pointerId));
 }
 
-async function chooseRing(button, image) {
+async function chooseRing(button, image, url) {
   const version = ++ringVersion;
   const status = get('ring-status');
   ringPending = true;
   status.textContent = 'リングを読み込み中…';
   update();
   try {
-    image.loading = 'eager';
-    await image.decode();
+    const overlay = await prepareRing(image, url, SIZE);
     if (version !== ringVersion) return;
-    ring = image;
+    ring = overlay;
     selectedButton?.setAttribute('aria-pressed', 'false');
     button.setAttribute('aria-pressed', 'true');
     selectedButton = button;
@@ -230,22 +235,30 @@ async function loadRings() {
       button.className = 'ring';
       button.type = 'button';
       button.setAttribute('aria-pressed', 'false');
-      const image = new Image();
-      image.alt = '';
-      if (index > 0) image.loading = 'lazy';
-      image.src = './rings/' + encodeURIComponent(file);
+      const url = './rings/' + encodeURIComponent(file);
+      const isGif = /\.gif$/i.test(file);
+      const image = isGif ? document.createElement('canvas') : new Image();
+      if (isGif) {
+        image.width = image.height = 128;
+        image.setAttribute('aria-hidden', 'true');
+        drawGifThumbnail(image, url).catch(() => {});
+      } else {
+        image.alt = '';
+        if (index > 0) image.loading = 'lazy';
+        image.src = url;
+      }
       const label = document.createElement('span');
       label.textContent = name;
       button.append(image, label);
       button.addEventListener('click', () => {
         openPhotoPicker();
-        chooseRing(button, image);
+        chooseRing(button, image, url);
       });
-      return { button, image };
+      return { button, image, url };
     });
     get('rings').replaceChildren(...buttons.map(({ button }) => button));
     const [first] = buttons;
-    await chooseRing(first.button, first.image);
+    await chooseRing(first.button, first.image, first.url);
   } catch {
     status.textContent = 'リング一覧を取得できませんでした。ページを再読み込みしてください。';
   }

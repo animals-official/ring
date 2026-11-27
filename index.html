@@ -12,6 +12,7 @@
 <body>
   <header class="hero">
     <div class="hero-art" aria-hidden="true"></div>
+    <div class="hero-wolf" aria-hidden="true"></div>
     <div class="hero-inner">
       <h1><img class="hero-logo" src="./assets/animals-logo.png" width="1101" height="108" alt="ANIMALS"></h1>
       <p>OFFICIAL ICON RING MAKER</p>
@@ -37,6 +38,7 @@
       <section class="preview panel" aria-labelledby="preview-title">
         <div class="section-heading">
           <h2 id="preview-title">プレビュー</h2>
+          <span class="waveform" aria-hidden="true"></span>
         </div>
         <div class="stage">
           <canvas id="preview" width="540" height="540" role="img" aria-label="アイコンの合成プレビュー"></canvas>
@@ -49,10 +51,17 @@
           <h2 id="adjust-title">写真を調整</h2>
           <button id="reset" class="text-button" type="button" disabled>リセット</button>
         </div>
-        <label class="slider" for="zoom">拡大・縮小 <output id="zoom-value" for="zoom">100%</output></label>
-        <input id="zoom" type="range" min="50" max="400" value="100" disabled>
-        <label class="slider" for="rotation">回転 <output id="rotation-value" for="rotation">0°</output></label>
-        <input id="rotation" type="range" min="-180" max="180" value="0" disabled>
+        <div class="faders">
+          <div class="fader">
+            <label class="slider" for="zoom">拡大・縮小 <output id="zoom-value" for="zoom">100%</output></label>
+            <input id="zoom" type="range" min="50" max="400" value="100" disabled>
+          </div>
+          <div class="fader">
+            <label class="slider" for="rotation">回転 <output id="rotation-value" for="rotation">0°</output></label>
+            <input id="rotation" type="range" min="-180" max="180" value="0" disabled>
+          </div>
+          <div class="meter" aria-hidden="true"></div>
+        </div>
         <div class="move" role="group" aria-label="写真の位置を調整">
           <button type="button" data-x="-1" aria-label="左へ移動" disabled>←</button>
           <button type="button" data-y="-1" aria-label="上へ移動" disabled>↑</button>

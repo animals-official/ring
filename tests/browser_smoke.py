@@ -23,7 +23,7 @@ class QuietHandler(SimpleHTTPRequestHandler):
 with tempfile.TemporaryDirectory() as root:
     site = Path(root) / 'ring'
     site.mkdir()
-    for file in ['index.html', 'style.css', 'app.js', 'image.js']:
+    for file in ['index.html', 'style.css', 'app.js', 'image.js', 'ring.js']:
         copy2(ROOT / file, site)
     (site / 'assets').mkdir()
     copy2(ROOT / 'assets' / 'animals-logo.png', site / 'assets')
@@ -49,7 +49,7 @@ with tempfile.TemporaryDirectory() as root:
     assert len(manifest()) == 2
     extra.rename(renamed)
     assert {entry['file'] for entry in manifest()} == {demo_file, renamed.name}
-    (site / 'rings' / 'ignored.jpg').touch()
+    (site / 'rings' / 'ignored.txt').touch()
 
     server = ThreadingHTTPServer(('127.0.0.1', 0), partial(QuietHandler, directory=root))
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -90,7 +90,7 @@ with tempfile.TemporaryDirectory() as root:
         second = page.get_by_role('button', name='変更 #リング')
         expect(first).to_have_attribute('aria-pressed', 'true')
         assert page.evaluate('document.documentElement.scrollWidth === innerWidth')
-        expect(page.get_by_text('1500 × 1500 PX', exact=True)).to_be_visible()
+        expect(page.get_by_text('1500 × 1500 PX', exact=True)).to_have_count(0)
         uploader = page.locator('#photo')
         save = page.get_by_role('button', name='画像を保存する！')
         expect(page.get_by_text('AWAKEN THE WILD WITHIN THE SOUND', exact=True)).to_be_visible()
@@ -110,13 +110,14 @@ with tempfile.TemporaryDirectory() as root:
             expect(save).to_be_enabled()
             expect(preview_picker).to_be_hidden()
 
-        def download():
+        def download(transparent_corner=True):
             with page.expect_download() as result:
                 save.click()
             assert result.value.suggested_filename == 'animals-icon.png'
             output = Image.open(result.value.path())
             assert output.format == 'PNG' and output.mode == 'RGBA' and output.size == OUTPUT_DIMENSIONS
-            assert output.getpixel((0, 0))[3] == 0
+            if transparent_corner:
+                assert output.getpixel((0, 0))[3] == 0
             return output
 
         output = download()
@@ -250,7 +251,46 @@ with tempfile.TemporaryDirectory() as root:
         page.reload()
         expect(page.locator('#ring-status')).to_contain_text('まだ登録されていません')
         expect(save).to_be_disabled()
+        # Exercise every newly accepted extension and the actual exported pixels.
+        ring_dir = site / 'rings'
+        formats = {'A.JpEg': 'JPEG', 'B.jpg': 'JPEG', 'C.WeBp': 'WEBP',
+                   'D.AvIf': 'AVIF', 'E.BmP': 'BMP', 'F.GiF': 'GIF', 'G.PnG': 'PNG'}
+        for filename, format in formats.items():
+            options = {}
+            source = Image.new('RGB', (220, 160) if format == 'BMP' else (160, 160), (220, 44, 55))
+            if format == 'WEBP':
+                source = Image.new('RGBA', (160, 160), (220, 44, 55, 255))
+                ImageDraw.Draw(source).rectangle((60, 60, 100, 100), fill=(0, 255, 0, 128))
+                options['lossless'] = True
+            if format == 'GIF':
+                options.update(save_all=True, append_images=[Image.new('RGB', source.size, (0, 255, 0))],
+                               duration=120, loop=0)
+            source.save(ring_dir / filename, format, **options)
+        assert manifest() == [{'name': file.split('.')[0], 'file': file} for file in formats]
+        page.reload()
+        uploader.set_input_files(photo('PNG'))
+        for filename, format in formats.items():
+            button = page.get_by_role('button', name=filename.split('.')[0], exact=True)
+            button.click()
+            expect(button).to_have_attribute('aria-pressed', 'true')
+            expect(save).to_be_enabled()
+            output = download(transparent_corner=False)
+            center = output.getpixel((750, 750))
+            if format == 'WEBP':
+                assert center[1] > 160 and center != (40, 100, 180, 255)
+            else:
+                assert center == (40, 100, 180, 255)
+            r, g, b, a = output.getpixel((100, 750))
+            assert r > 190 and g < 70 and b < 80 and a == 255
+            if format == 'BMP':
+                assert output.getpixel((750, 100)) == (40, 100, 180, 255)
+            if format == 'GIF':
+                thumbnail = button.locator('canvas')
+                assert thumbnail.evaluate('el => el.getContext("2d").getImageData(64,64,1,1).data[0]') > 190
+                page.get_by_role('button', name='リセット').click()
+                expect(save).to_be_enabled()
+                assert download(transparent_corner=False).getpixel((100, 750)) == (220, 44, 55, 255)
         browser.close()
     server.shutdown()
     server.server_close()
-print('PASS: manifest additions/renames/deletions, mobile UI, JPEG/PNG/WebP, composites, 1500px RGBA downloads at two viewport widths, drag, pinch, reset, invalid images, same-origin requests, empty state, native picker, simulated iPhone share and fallback')
+print('PASS: manifest additions/renames/deletions, mobile UI, JPEG/PNG/WebP, composites, 1500px RGBA downloads at two viewport widths, drag, pinch, reset, invalid images, same-origin requests, empty state, native picker, simulated iPhone share and fallback, all ring formats and alpha rules')
