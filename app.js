@@ -2,7 +2,7 @@ import { loadPhoto } from './image.js';
 import { drawGifThumbnail, prepareRing } from './ring.js';
 
 const SIZE = 1500;
-const MOVE_STEP = SIZE / 45;
+const MOVE_STEP = 5;
 const FILE_NAME = 'animals-icon.png';
 const get = (id) => document.getElementById(id);
 const canvas = get('preview');
