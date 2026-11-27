@@ -379,3 +379,8 @@ body::after { right:0; transform:scaleX(-1); }
 .workspace .preview { padding:clamp(8px,1vw,12px); }
 @media (min-width:721px) { .workspace { grid-template-columns:minmax(0,1.7fr) minmax(0,1fr); } }
 @media (max-width:720px) { main { padding-inline:14px; } .workspace { padding-inline:6px; } .workspace .preview { padding-inline:6px; } }
+
+/* Extra-large preview while preserving the side lighting. */
+@media (min-width:900px) { main { width:min(100%,1320px); } .workspace { grid-template-columns:minmax(0,2.15fr) minmax(280px,1fr); } }
+.workspace .jog-wheel .stage { max-width:none; }
+@media (max-width:720px) { .workspace .preview { padding-inline:2px; } .workspace .preview .section-heading { padding-inline:6px; } .workspace .preview > .hint { padding-inline:6px; } }
