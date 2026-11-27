@@ -327,4 +327,7 @@ footer small { color: var(--muted); font-size: .63rem; letter-spacing: .2em; }
 @media (hover:hover) { .workspace .primary:hover:not(:disabled) { box-shadow:0 0 18px #d6b98c77; } .workspace .upload:hover,.workspace .move button:hover:not(:disabled),.workspace .secondary:hover:not(:disabled) { border-color:#a5e5f1; box-shadow:0 0 9px #a5e5f144; } }
 @media (max-width:720px) { .workspace { grid-template-columns:minmax(0,1fr); grid-template-areas:"brand" "rings" "photo" "preview" "adjust" "actions"; grid-template-rows:auto; gap:10px; } .jog-wheel { max-width:430px; } }
 /* Keep the entire square export visible inside the circular bezel. */
-.workspace .stage { width:62%; border-radius:3px; }
+.workspace .stage { width:90%; border-radius:3px; z-index:1; box-shadow:0 0 12px #0008; }
+.jog-wheel::before, .jog-wheel::after { z-index:0; }
+.jog-wheel { width:min(100%, 600px); }
+@media (max-width:720px) { .jog-wheel { max-width:430px; } }
